@@ -27,7 +27,7 @@ module "vpc" {
   # Cost-saving: no NAT Gateway 
   enable_nat_gateway = false
   single_nat_gateway = false
-
+  map_public_ip_on_launch = true
   tags = local.tags
 
   # Tags required for Load Balancers on EKS (ALB on Ingress)

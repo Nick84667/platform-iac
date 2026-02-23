@@ -1,1 +1,40 @@
+name: 20 - Install Argo CD (official manifest)
 
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::132334512300:role/rolegithub
+          aws-region: eu-central-1
+
+      - name: Install awscli + kubectl
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+
+      - name: Configure kubeconfig for EKS
+        run: |
+          aws eks --region eu-central-1 update-kubeconfig --name eks-lab
+          kubectl get nodes
+
+      - name: Install Argo CD (official)
+        run: |
+          kubectl create namespace argocd || true
+          kubectl apply -n argocd --server-side --force-conflicts \
+            -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+          kubectl get pods -n argocd
+``
